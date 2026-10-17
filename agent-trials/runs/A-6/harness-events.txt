@@ -1,0 +1,1 @@
+2026-10-17T11:44:53+01:00 no output for 60s with no tool call open: sent SIGINT to the CLI so it prints its result event

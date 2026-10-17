@@ -1,0 +1,7 @@
+$ INVENTORY_URL=http://127.0.0.1:8001 ./run_live.sh 2.1.0  (exit 0)
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/MUG-001/availability
+{"sku":"MUG-001","available":9,"in_stock":true} [200]
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/TEE-042/availability
+{"sku":"TEE-042","available":0,"in_stock":false} [200]
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/NOPE-000/availability
+{"detail":"unknown product"} [404]

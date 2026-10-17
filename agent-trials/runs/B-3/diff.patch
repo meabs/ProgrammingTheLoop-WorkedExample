@@ -1,0 +1,187 @@
+diff --git a/app/clients/inventory.py b/app/clients/inventory.py
+new file mode 100644
+index 0000000..9b698aa
+--- /dev/null
++++ b/app/clients/inventory.py
+@@ -0,0 +1,59 @@
++"""Inventory stock lookups via the inventory service HTTP API."""
++import logging
++import os
++
++import httpx
++
++logger = logging.getLogger(__name__)
++
++BASE_URL = os.environ.get("INVENTORY_URL", "http://localhost:8080")
++
++
++class InventoryError(Exception):
++    """Inventory could not be reached or returned an invalid response."""
++
++
++class UnknownSkuError(Exception):
++    """SKU is not known to inventory."""
++
++
++def _fetch_stock_response(sku: str) -> httpx.Response:
++    url = f"{BASE_URL.rstrip('/')}/v2/stock/{sku}"
++    with httpx.Client(timeout=5.0) as client:
++        return client.get(url)
++
++
++def get_stock(sku: str) -> dict:
++    try:
++        response = _fetch_stock_response(sku)
++    except httpx.RequestError:
++        logger.exception("inventory unreachable for sku %s", sku)
++        raise InventoryError from None
++
++    if response.status_code == 404:
++        raise UnknownSkuError
++    if response.status_code != 200:
++        logger.error(
++            "inventory unexpected status %s for sku %s",
++            response.status_code,
++            sku,
++        )
++        raise InventoryError
++
++    try:
++        data = response.json()
++        on_hand = data["on_hand"]
++        reserved = data["reserved"]
++        resp_sku = data["sku"]
++    except (KeyError, TypeError, ValueError):
++        logger.exception("inventory response outside contract for sku %s", sku)
++        raise InventoryError from None
++
++    if not isinstance(on_hand, int) or not isinstance(reserved, int):
++        logger.error("inventory on_hand/reserved not integers for sku %s", sku)
++        raise InventoryError
++    if on_hand < 0 or reserved < 0:
++        logger.error("inventory negative stock values for sku %s", sku)
++        raise InventoryError
++
++    return {"sku": resp_sku, "on_hand": on_hand, "reserved": reserved}
+diff --git a/app/main.py b/app/main.py
+index 82d72e7..e99bf55 100644
+--- a/app/main.py
++++ b/app/main.py
+@@ -1,6 +1,6 @@
+ from fastapi import FastAPI, HTTPException
+ 
+-from app.clients import catalogue
++from app.clients import catalogue, inventory
+ 
+ app = FastAPI(title="storefront-api")
+ 
+@@ -11,3 +11,22 @@ def read_product(sku: str):
+     if product is None:
+         raise HTTPException(status_code=404, detail="unknown product")
+     return product
++
++
++@app.get("/products/{sku}/availability")
++def read_availability(sku: str):
++    if catalogue.get_product(sku) is None:
++        raise HTTPException(status_code=404, detail="unknown product")
++    try:
++        stock = inventory.get_stock(sku)
++    except inventory.UnknownSkuError:
++        raise HTTPException(status_code=404, detail="unknown product")
++    except inventory.InventoryError:
++        raise HTTPException(status_code=502, detail="inventory unavailable")
++
++    available = stock["on_hand"] - stock["reserved"]
++    return {
++        "sku": sku,
++        "available": available,
++        "in_stock": available > 0,
++    }
+diff --git a/tests/test_availability.py b/tests/test_availability.py
+new file mode 100644
+index 0000000..512fb90
+--- /dev/null
++++ b/tests/test_availability.py
+@@ -0,0 +1,81 @@
++import logging
++
++import httpx
++import pytest
++from fastapi.testclient import TestClient
++
++from app.clients import inventory
++from app.main import app
++
++client = TestClient(app)
++
++
++def test_known_sku_with_stock(monkeypatch):
++    def fake_get_stock(sku: str):
++        assert sku == "MUG-001"
++        return {"sku": "MUG-001", "on_hand": 12, "reserved": 3}
++
++    monkeypatch.setattr(inventory, "get_stock", fake_get_stock)
++    r = client.get("/products/MUG-001/availability")
++    assert r.status_code == 200
++    assert r.json() == {"sku": "MUG-001", "available": 9, "in_stock": True}
++
++
++def test_known_sku_fully_reserved(monkeypatch):
++    def fake_get_stock(sku: str):
++        return {"sku": "TEE-042", "on_hand": 10, "reserved": 10}
++
++    monkeypatch.setattr(inventory, "get_stock", fake_get_stock)
++    r = client.get("/products/TEE-042/availability")
++    assert r.status_code == 200
++    assert r.json() == {"sku": "TEE-042", "available": 0, "in_stock": False}
++
++
++def test_unknown_catalogue_sku(monkeypatch):
++    def fail_if_called(*_args, **_kwargs):
++        raise AssertionError("inventory should not be called for unknown catalogue sku")
++
++    monkeypatch.setattr(inventory, "get_stock", fail_if_called)
++    r = client.get("/products/NOPE-000/availability")
++    assert r.status_code == 404
++
++
++def test_unknown_inventory_sku(monkeypatch):
++    def fake_get_stock(_sku: str):
++        raise inventory.UnknownSkuError()
++
++    monkeypatch.setattr(inventory, "get_stock", fake_get_stock)
++    r = client.get("/products/MUG-001/availability")
++    assert r.status_code == 404
++
++
++def test_inventory_unreachable_logs_and_returns_502(monkeypatch, caplog):
++    def fake_fetch(_sku: str):
++        raise httpx.ConnectError(
++            "connection refused",
++            request=httpx.Request("GET", "http://inventory/v2/stock/MUG-001"),
++        )
++
++    monkeypatch.setattr(inventory, "_fetch_stock_response", fake_fetch)
++    with caplog.at_level(logging.ERROR):
++        r = client.get("/products/MUG-001/availability")
++    assert r.status_code == 502
++    assert any("inventory" in rec.message.lower() for rec in caplog.records)
++
++
++@pytest.mark.parametrize(
++    "status_code,payload",
++    [
++        (200, {"sku": "MUG-001", "on_hand": "nope", "reserved": 0}),
++        (200, {"sku": "MUG-001"}),
++        (500, {"error": "boom"}),
++    ],
++)
++def test_inventory_http_outside_contract(monkeypatch, status_code, payload):
++    def fake_get_stock(sku: str):
++        request = httpx.Request("GET", f"http://inventory/v2/stock/{sku}")
++        return httpx.Response(status_code, json=payload, request=request)
++
++    monkeypatch.setattr(inventory, "_fetch_stock_response", fake_get_stock)
++    r = client.get("/products/MUG-001/availability")
++    assert r.status_code == 502

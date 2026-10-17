@@ -1,0 +1,38 @@
+[
+  {
+    "command": "<project>/.venv/bin/python -c \"import fastapi, httpx, pytest; print('ok')\"",
+    "exit_code": 0,
+    "output": "ok\n",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/python -c \"import respx; print('respx ok')\" 2>&1; <project>/.venv/bin/pip list 2>/dev/null | head -30",
+    "exit_code": 0,
+    "output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import respx; print('respx ok')\n    ^^^^^^^^^^^^\nModuleNotFoundError: No module named 'respx'\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && ../.venv/bin/python -m pytest tests/test_availability.py -q 2>&1",
+    "exit_code": 1,
+    "output": "t of the colon is a\n        package to be imported, and the dotted name to the right is the object\n        hierarchy within that package. Only one import is needed in this form. If\n        it ends with the colon, then a module object is returned.\n    \n        The function will return an object (which might be a module), or raise one\n        of the following exceptions:\n    \n        ValueError - if `name` isn't in a recognised format\n        ImportError - if an import failed when it shouldn't have\n        AttributeError - if a failure occurred when traversing the object hierarchy\n                         within the imported package to get to the desired object.\n        \"\"\"\n        global _NAME_PATTERN\n        if _NAME_PATTERN is None:\n            # Lazy import to speedup Python startup time\n            import re\n            dotted_words = r'(?!\\d)(\\w+)(\\.(?!\\d)(\\w+))*'\n            _NAME_PATTERN = re.compile(f'^(?P<pkg>{dotted_words})'\n                                       f'(?P<cln>:(?P<obj>{dotted_words})?)?$',\n                                       re.UNICODE)\n    \n        m = _NAME_PATTERN.match(name)\n        if not m:\n            raise ValueError(f'invalid format: {name!r}')\n        gd = m.groupdict()\n        if gd.get('cln'):\n            # there is a colon - a one-step import is all that's needed\n            mod = importlib.import_module(gd['pkg'])\n            parts = gd.get('obj')\n            parts = parts.split('.') if parts else []\n        else:\n            # no colon - have to iterate to find the package boundary\n            parts = name.split('.')\n            modname = parts.pop(0)\n            # first part *must* be a module/package.\n            mod = importlib.import_module(modname)\n            while parts:\n                p = parts[0]\n                s = f'{modname}.{p}'\n                try:\n                    mod = importlib.import_module(s)\n                    parts.pop(0)\n                    modname = s\n                except ImportError:\n                    break\n        # if we reach this point, mod is the module, already imported, and\n        # parts is the list of parts in the object hierarchy to be traversed, or\n        # an empty list if just the module is wanted.\n        result = mod\n        for p in parts:\n>           result = getattr(result, p)\n                     ^^^^^^^^^^^^^^^^^^\nE           AttributeError: module 'app.clients' has no attribute 'inventory'\n\n/usr/lib/python3.13/pkgutil.py:528: AttributeError\n=========================== short test summary info ============================\nFAILED tests/test_availability.py::test_known_sku_with_stock - AttributeError...\nFAILED tests/test_availability.py::test_known_sku_fully_reserved - AttributeE...\nFAILED tests/test_availability.py::test_known_catalogue_unknown_inventory_sku\nFAILED tests/test_availability.py::test_inventory_unreachable_returns_502_and_logs\nFAILED tests/test_availability.py::test_inventory_invalid_contract_returns_502_and_logs\n5 failed, 1 passed in 0.42s\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && bash scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n........                                                                 [100%]\n8 passed in 0.29s\n",
+    "rejected": false
+  },
+  {
+    "command": "curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/v2/stock/MUG-001 2>&1; echo; curl -s http://localhost:8081/v2/stock/MUG-001 2>&1 || true",
+    "exit_code": 0,
+    "output": "000\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && INVENTORY_URL=http://localhost:8081 ../.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 &\nsleep 1\ncurl -s -w \"\\nHTTP %{http_code}\\n\" http://127.0.0.1:8000/products/MUG-001/availability 2>&1 || true\nkill %1 2>/dev/null || true",
+    "exit_code": 0,
+    "output": "INFO:     127.0.0.1:51872 - \"GET /products/MUG-001/availability HTTP/1.1\" 502 Bad Gateway\n{\"detail\":\"inventory unavailable\"}\nHTTP 502\nINFO:     Started server process [601]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)\ninventory unreachable for MUG-001: [Errno 111] Connection refused\n",
+    "rejected": false
+  }
+]

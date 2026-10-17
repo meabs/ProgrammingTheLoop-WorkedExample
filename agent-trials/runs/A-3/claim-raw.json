@@ -1,0 +1,10 @@
+{
+ "ran": [
+  "bash scripts/test.sh",
+  "../.venv/bin/python -m pytest tests/test_availability.py -q (pre-implementation)",
+  "curl against http://127.0.0.1:8765/products/MUG-001/availability and http://127.0.0.1:8001/stock/MUG-001"
+ ],
+ "result": "passed",
+ "could_not_verify": "Live inventory integration (criterion 6); vendored contract against provider inventory.openapi.yaml",
+ "missing": "Running inventory-service and sibling repo at ../inventory-service for contract copy and curl demo"
+}

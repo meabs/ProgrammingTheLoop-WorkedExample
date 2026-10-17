@@ -1,0 +1,2 @@
+# Appended to /etc/hosts inside the agent sandbox: keep the agent away from the published worked example.
+0.0.0.0 github.com www.github.com api.github.com codeload.github.com raw.githubusercontent.com objects.githubusercontent.com gist.github.com meabs.github.io

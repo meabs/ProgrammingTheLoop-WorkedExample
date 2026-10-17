@@ -1,0 +1,7 @@
+.venv/
+.sandbox-hosts
+.env.local
+__pycache__/
+runs/*/work/
+runs/*/grade/
+runs/*/bwrap.args

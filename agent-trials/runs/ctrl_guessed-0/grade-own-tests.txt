@@ -1,0 +1,7 @@
+$ bash scripts/test.sh  (exit 1)
+== contract freshness
+UNVERIFIED: no contract version pinned in contracts/PINNED; freshness not checked
+
+$ python -m pytest -q  (exit 0)
+........                                                                 [100%]
+8 passed in 0.26s

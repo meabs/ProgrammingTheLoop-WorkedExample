@@ -1,0 +1,9 @@
+{
+ "ran": [
+  "bash scripts/test.sh",
+  "curl against stub inventory + storefront on 127.0.0.1"
+ ],
+ "result": "passed",
+ "could_not_verify": "Official inventory service deployment; criterion 6 used a contract-matching local stub only",
+ "missing": "Runnable inventory service binary or compose target for true live integration"
+}

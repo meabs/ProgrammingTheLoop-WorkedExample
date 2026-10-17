@@ -1,0 +1,11 @@
+{
+ "ran": [
+  "cd <project>/storefront-api && ../.venv/bin/python -m pytest tests/test_availability.py -q",
+  "cd <project>/storefront-api && bash scripts/test.sh",
+  "curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/v2/stock/MUG-001",
+  "uvicorn + curl http://127.0.0.1:8000/products/MUG-001/availability"
+ ],
+ "result": "passed",
+ "could_not_verify": "End-to-end 200 availability against a running inventory service (nothing listening on localhost:8081)",
+ "missing": "Runnable inventory service or documented INVENTORY_URL and sample SKUs for integration curl"
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "command": "../.venv/bin/python -c \"import httpx; import fastapi; print('ok')\"",
+    "exit_code": 0,
+    "output": "ok\n",
+    "rejected": false
+  },
+  {
+    "command": "curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/v2/stock/MUG-001 2>/dev/null || echo \"fail\"; curl -s http://127.0.0.1:8081/v2/stock/MUG-001 2>/dev/null | head -c 200 || true",
+    "exit_code": 0,
+    "output": "000fail\n",
+    "rejected": false
+  },
+  {
+    "command": "for port in 8000 8001 8080 8081 9000; do echo -n \"port $port: \"; curl -s -m 1 \"http://127.0.0.1:$port/v2/stock/MUG-001\" 2>&1 | head -c 80; echo; done",
+    "exit_code": 0,
+    "output": "port 8000: \nport 8001: \nport 8080: \nport 8081: \nport 9000: \n",
+    "rejected": false
+  },
+  {
+    "command": "../.venv/bin/python -c \"import respx\" 2>&1 || echo \"no respx\"",
+    "exit_code": 0,
+    "output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import respx\nModuleNotFoundError: No module named 'respx'\nno respx\n",
+    "rejected": false
+  },
+  {
+    "command": "../.venv/bin/python -m pytest tests/test_availability.py -q 2>&1",
+    "exit_code": 2,
+    "output": "\n==================================== ERRORS ====================================\n_________________ ERROR collecting tests/test_availability.py __________________\nImportError while importing test module '<project>/storefront-api/tests/test_availability.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_availability.py:6: in <module>\n    from app.clients import inventory\nE   ImportError: cannot import name 'inventory' from 'app.clients' (<project>/storefront-api/app/clients/__init__.py)\n=========================== short test summary info ============================\nERROR tests/test_availability.py\n!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 error in 0.30s\n",
+    "rejected": false
+  },
+  {
+    "command": "bash scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n.........                                                                [100%]\n9 passed in 0.27s\n",
+    "rejected": false
+  },
+  {
+    "command": "curl -s -w \"\\nHTTP %{http_code}\\n\" \"http://localhost:8000/v2/stock/MUG-001\" 2>&1; echo \"---\"; INVENTORY_URL=http://localhost:8000 ../.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8765 &\nsleep 1\ncurl -s -w \"\\nHTTP %{http_code}\\n\" \"http://127.0.0.1:8765/products/MUG-001/availability\" 2>&1\nkill %1 2>/dev/null || true",
+    "exit_code": 0,
+    "output": "\nHTTP 000\n---\nINFO:     127.0.0.1:60864 - \"GET /products/MUG-001/availability HTTP/1.1\" 502 Bad Gateway\n{\"detail\":\"inventory unavailable\"}\nHTTP 502\nINFO:     Started server process [639]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://127.0.0.1:8765 (Press CTRL+C to quit)\ninventory request failed for MUG-001: [Errno 111] Connection refused\ninventory unavailable for MUG-001: [Errno 111] Connection refused\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [639]\n",
+    "rejected": false
+  }
+]

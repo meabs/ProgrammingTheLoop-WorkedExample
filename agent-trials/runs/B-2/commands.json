@@ -1,0 +1,68 @@
+[
+  {
+    "command": "<project>/.venv/bin/python -c \"import httpx; import fastapi; print('ok')\"",
+    "exit_code": 0,
+    "output": "ok\n",
+    "rejected": false
+  },
+  {
+    "command": "bash <project>/storefront-api/scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n..                                                                       [100%]\n2 passed in 0.23s\n",
+    "rejected": false
+  },
+  {
+    "command": "env | grep -i invent 2>/dev/null; curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/v2/stock/MUG-001 2>/dev/null || echo \"curl failed\"",
+    "exit_code": 0,
+    "output": "[environment listing redacted]",
+    "rejected": false
+  },
+  {
+    "command": "ls -la <project>/ | head -30",
+    "exit_code": 0,
+    "output": "total 16\ndrwxr-xr-x 5 user user 4096 Oct 17 11:16 .\ndrwxr-xr-x 3 user user   60 Oct 17 11:16 ..\ndrwxr-xr-x 4 user user 4096 Oct 17 10:22 .venv\ndrwxr-xr-x 3 user user 4096 Oct 17 11:16 inventory-service\ndrwxr-xr-x 9 user user 4096 Oct 17 11:17 storefront-api\n",
+    "rejected": false
+  },
+  {
+    "command": "for port in 8000 8001 8080 8081 9000; do echo -n \"port $port: \"; curl -s -m 1 -o /dev/null -w \"%{http_code}\" \"http://127.0.0.1:$port/v2/stock/MUG-001\" 2>/dev/null || echo fail; done",
+    "exit_code": 0,
+    "output": "port 8000: 000fail\nport 8001: 000fail\nport 8080: 000fail\nport 8081: 000fail\nport 9000: 000fail\n",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/python -c \"import respx\" 2>&1",
+    "exit_code": 1,
+    "output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import respx\nModuleNotFoundError: No module named 'respx'\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && ../.venv/bin/python -m pytest tests/test_availability.py tests/test_inventory_client.py -q 2>&1",
+    "exit_code": 2,
+    "output": "\n==================================== ERRORS ====================================\n_________________ ERROR collecting tests/test_availability.py __________________\nImportError while importing test module '<project>/storefront-api/tests/test_availability.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_availability.py:6: in <module>\n    from app.clients import inventory\nE   ImportError: cannot import name 'inventory' from 'app.clients' (<project>/storefront-api/app/clients/__init__.py)\n_______________ ERROR collecting tests/test_inventory_client.py ________________\nImportError while importing test module '<project>/storefront-api/tests/test_inventory_client.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_inventory_client.py:3: in <module>\n    from app.clients import inventory\nE   ImportError: cannot import name 'inventory' from 'app.clients' (<project>/storefront-api/app/clients/__init__.py)\n=========================== short test summary info ============================\nERROR tests/test_availability.py\nERROR tests/test_inventory_client.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!\n2 errors in 0.28s\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && bash scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n...........                                                              [100%]\n11 passed in 0.30s\n",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/python <tmp>/inventory_stub.py",
+    "exit_code": 0,
+    "output": "",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && INVENTORY_BASE_URL=http://127.0.0.1:18080 <project>/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 18081",
+    "exit_code": 0,
+    "output": "",
+    "rejected": false
+  },
+  {
+    "command": "sleep 1 && echo \"=== inventory direct ===\" && curl -s http://127.0.0.1:18080/v2/stock/MUG-001 && echo && echo \"=== storefront availability ===\" && curl -s -w \"\\nHTTP %{http_code}\\n\" http://127.0.0.1:18081/products/MUG-001/availability && echo \"=== fully reserved ===\" && curl -s -w \"\\nHTTP %{http_code}\\n\" http://127.0.0.1:18081/products/TEE-042/availability",
+    "exit_code": 0,
+    "output": "=== inventory direct ===\n{\"sku\": \"MUG-001\", \"on_hand\": 12, \"reserved\": 3}\n=== storefront availability ===\n{\"sku\":\"MUG-001\",\"available\":9,\"in_stock\":true}\nHTTP 200\n=== fully reserved ===\n{\"sku\":\"TEE-042\",\"available\":0,\"in_stock\":false}\nHTTP 200\n",
+    "rejected": false
+  }
+]

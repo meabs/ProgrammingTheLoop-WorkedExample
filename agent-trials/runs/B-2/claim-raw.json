@@ -1,0 +1,14 @@
+{
+ "ran": [
+  "bash scripts/test.sh",
+  "../.venv/bin/python -m pytest tests/test_availability.py tests/test_inventory_client.py -q (pre-implementation)",
+  "curl against stub inventory :18080 and storefront :18081"
+ ],
+ "result": "passed",
+ "could_not_verify": [
+  "End-to-end against a real inventory team deployment (no service binary in repo); only contract-aligned stub"
+ ],
+ "missing": [
+  "Runnable inventory service or docker compose in workspace for criterion 6 without a local stub"
+ ]
+}

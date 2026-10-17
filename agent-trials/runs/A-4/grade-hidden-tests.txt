@@ -1,0 +1,142 @@
+FFFFFFF..                                                                [100%]
+=================================== FAILURES ===================================
+_________________ test_contract_example_matches_fields_we_read _________________
+
+    def test_contract_example_matches_fields_we_read():
+        example = OK_SCHEMA["example"]
+        assert {"on_hand", "reserved"} <= set(OK_SCHEMA["schema"]["required"])
+>       assert inventory.get_stock("MUG-001", transport=httpx.MockTransport(
+               ^^^^^^^^^^^^^^^^^^^
+            lambda req: httpx.Response(200, json=example))) == (12, 3)
+E       AttributeError: module 'app.clients.inventory' has no attribute 'get_stock'
+
+tests/test_availability.py:41: AttributeError
+________________________________ test_in_stock _________________________________
+
+client = <function client.<locals>.use at 0x7fab4a7d9580>
+
+    def test_in_stock(client):
+>       r = client(fake_inventory({"MUG-001": (12, 3)})).get("/products/MUG-001/availability")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_availability.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+transport = <httpx.MockTransport object at 0x7fab4a71eba0>
+
+    def use(transport):
+>       real = inventory.get_stock
+               ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.clients.inventory' has no attribute 'get_stock'
+
+tests/test_availability.py:32: AttributeError
+______________________________ test_all_reserved _______________________________
+
+client = <function client.<locals>.use at 0x7fab4a7d9940>
+
+    def test_all_reserved(client):
+>       r = client(fake_inventory({"TEE-042": (2, 2)})).get("/products/TEE-042/availability")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_availability.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+transport = <httpx.MockTransport object at 0x7fab4ba31a90>
+
+    def use(transport):
+>       real = inventory.get_stock
+               ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.clients.inventory' has no attribute 'get_stock'
+
+tests/test_availability.py:32: AttributeError
+__________________________ test_unknown_to_catalogue ___________________________
+
+client = <function client.<locals>.use at 0x7fab4a7d9d00>
+
+    def test_unknown_to_catalogue(client):
+>       assert client(fake_inventory({})).get("/products/NOPE-000/availability").status_code == 404
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_availability.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+transport = <httpx.MockTransport object at 0x7fab4a8e6710>
+
+    def use(transport):
+>       real = inventory.get_stock
+               ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.clients.inventory' has no attribute 'get_stock'
+
+tests/test_availability.py:32: AttributeError
+__________________________ test_unknown_to_inventory ___________________________
+
+client = <function client.<locals>.use at 0x7fab4a7da160>
+
+    def test_unknown_to_inventory(client):
+>       assert client(fake_inventory({})).get("/products/MUG-001/availability").status_code == 404
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_availability.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+transport = <httpx.MockTransport object at 0x7fab4b96eea0>
+
+    def use(transport):
+>       real = inventory.get_stock
+               ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.clients.inventory' has no attribute 'get_stock'
+
+tests/test_availability.py:32: AttributeError
+______________ test_inventory_outside_contract_is_502_not_a_guess ______________
+
+client = <function client.<locals>.use at 0x7fab4a7da480>
+
+    def test_inventory_outside_contract_is_502_not_a_guess(client):
+        bad = httpx.MockTransport(lambda req: httpx.Response(200, json={"sku": "MUG-001", "quantity": 5}))
+>       assert client(bad).get("/products/MUG-001/availability").status_code == 502
+               ^^^^^^^^^^^
+
+tests/test_availability.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+transport = <httpx.MockTransport object at 0x7fab4a7b55b0>
+
+    def use(transport):
+>       real = inventory.get_stock
+               ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.clients.inventory' has no attribute 'get_stock'
+
+tests/test_availability.py:32: AttributeError
+______________________ test_inventory_unreachable_is_502 _______________________
+
+client = <function client.<locals>.use at 0x7fab4a7daa20>
+
+    def test_inventory_unreachable_is_502(client):
+        def boom(request):
+            raise httpx.ConnectError("connection refused")
+>       assert client(httpx.MockTransport(boom)).get("/products/MUG-001/availability").status_code == 502
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_availability.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+transport = <httpx.MockTransport object at 0x7fab4a7fd490>
+
+    def use(transport):
+>       real = inventory.get_stock
+               ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'app.clients.inventory' has no attribute 'get_stock'
+
+tests/test_availability.py:32: AttributeError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_products.py::test_known_product
+PASSED tests/test_products.py::test_unknown_product
+FAILED tests/test_availability.py::test_contract_example_matches_fields_we_read
+FAILED tests/test_availability.py::test_in_stock - AttributeError: module 'ap...
+FAILED tests/test_availability.py::test_all_reserved - AttributeError: module...
+FAILED tests/test_availability.py::test_unknown_to_catalogue - AttributeError...
+FAILED tests/test_availability.py::test_unknown_to_inventory - AttributeError...
+FAILED tests/test_availability.py::test_inventory_outside_contract_is_502_not_a_guess
+FAILED tests/test_availability.py::test_inventory_unreachable_is_502 - Attrib...
+7 failed, 2 passed in 0.32s

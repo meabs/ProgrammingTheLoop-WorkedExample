@@ -1,0 +1,10 @@
+{
+ "ran": [
+  "bash scripts/test.sh",
+  "../.venv/bin/python -m pytest tests/test_availability.py -q",
+  "curl demo with inventory_stub.py + uvicorn"
+ ],
+ "result": "passed",
+ "could_not_verify": "End-to-end call against the inventory team's live service (not present in workspace; used contract-shaped stub instead).",
+ "missing": "A runnable inventory-service binary or documented dev URL for criterion 6 without a local stub."
+}

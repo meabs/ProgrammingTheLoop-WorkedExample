@@ -48,6 +48,10 @@ It should end with `all checks passed`. Timings and commit hashes in `logs/` dif
 
 `scripts/check_contract.py` compares declared versions: the pinned version against the published `info.version`. Version agreement cannot establish behavioural compatibility, and the gate cannot detect a provider that changed its behaviour without bumping its version. Contract tests against the real provider and the live check are what exercise behaviour. If the gate can't check (nothing pinned, contract unreachable, no `info.version`), it prints `UNVERIFIED` and exits 1, unless `ALLOW_UNVERIFIED` is set.
 
+## Agent trials
+
+The [`agent-trials/`](agent-trials/README.md) folder holds the coding-agent trials from the book's Chapters 3 and 5.
+
 ## Licence
 
 MIT; see `LICENSE`.

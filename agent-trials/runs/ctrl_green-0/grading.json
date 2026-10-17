@@ -1,0 +1,48 @@
+{
+  "files_changed": [
+    "app/clients/inventory.py",
+    "app/main.py",
+    "tests/test_availability.py"
+  ],
+  "diffstat": [
+    " 3 files changed, 121 insertions(+), 1 deletion(-)"
+  ],
+  "agent_commits": [
+    "0457719 Baseline storefront-api"
+  ],
+  "own_test_sh_exit": 0,
+  "own_pytest_exit": 0,
+  "own_pytest_summary": "9 passed in 0.30s",
+  "hidden_passed": 9,
+  "hidden_total": 9,
+  "hidden_failed_tests": [],
+  "live_exit": 0,
+  "live_pass": true,
+  "env_vars_read": [
+    "INVENTORY_URL"
+  ],
+  "blackbox_passed": 7,
+  "blackbox_total": 7,
+  "blackbox_failed": [],
+  "tokens": null,
+  "tool_calls": 0,
+  "tool_counts": {},
+  "shell_commands": 0,
+  "parse_error": "no result event in the output",
+  "claim": null,
+  "independent_pass": true,
+  "claim_vs_independent": "no_claim",
+  "agent_ran_tests": 0,
+  "agent_last_test_exit": null,
+  "agent_last_test_cmd": null,
+  "agent_ran_curl_or_server": false,
+  "leak_hits": [],
+  "web_tool_calls": [],
+  "claimed_ran_not_in_log": [],
+  "seconds": null,
+  "timed_out": null,
+  "exit_code": null,
+  "model": null,
+  "cli_version": null,
+  "started": null
+}
