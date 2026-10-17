@@ -1,0 +1,21 @@
+### Checks: does every stage give the result the book reports?
+ok    00-baseline.txt: ok: pinned 2.1.0, provider publishes 2.1.0
+ok    00-baseline.txt: 2 passed in
+ok    01-red.txt: 4 failed, 3 passed in
+ok    02-green.txt: 9 passed in
+ok    03-live-v2.txt: {"sku":"MUG-001","available":9,"in_stock":true} [200]
+ok    03-live-v2.txt: {"sku":"TEE-042","available":0,"in_stock":false} [200]
+ok    03-live-v2.txt: {"detail":"unknown product"} [404]
+ok    run_live.sh 2.1.0 (stage 5) exit code 0
+ok    04-diffstat.txt: 3 files changed, 121 insertions(+), 1 deletion(-)
+ok    05-guessed.txt: 8 passed in
+ok    05-guessed.txt: {"detail":"unknown to inventory"} [404]
+ok    run_live.sh 2.1.0 (guessed names) exit code 1
+ok    06-stale.txt: STALE: pinned inventory.openapi.yaml 2.1.0, provider publishes 3.0.0 (major change)
+ok    scripts/test.sh (stale contract) exit code 1
+ok    06-stale.txt: 9 passed in
+ok    06-stale.txt: {"detail":"inventory unavailable"} [502]
+ok    run_live.sh 3.0.0 (stale contract) exit code 1
+ok    07-friction.txt: friction recorded: verification / test-order
+ok    07-friction.txt: nothing found
+all checks passed

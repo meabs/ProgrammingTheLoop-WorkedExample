@@ -1,0 +1,37 @@
+### Stage 7: record friction with AgentFrictionLoop
+installed <worked-example>/storefront-api/.fbl/bin/fbl-friction
+insights worktree: <worked-example>/storefront-api/.git/fbl/insights
+installed post-commit hook
+installed pre-push hook
+tool installed at <worked-example>/.fbl-home
+wrote the friction instructions to: AGENTS.md (review and commit)
+done. For cloud agents copy <worked-example>/.fbl-home/templates/fbl-record.yml and for the weekly report <worked-example>/.fbl-home/templates/fbl-weekly.yml to <worked-example>/storefront-api/.github/workflows, then set FBL_TOOL_REPOSITORY, FBL_TOOL_REF and FBL_DOMAIN.
+friction recorded: verification / test-order
+-- records on the hidden insights branch:
+record storefront-api@588fa12dec8c
+Initialise fbl insights
+{
+ "friction": [
+  {
+   "category": "test-order",
+   "origin": "verification",
+   "source": "event",
+   "text": "no documented way to run storefront against a live inventory service; started both with uvicorn by hand to check real behaviour"
+  }
+ ],
+ "diff_stats": {
+  "by_category": {
+   "config": 0,
+   "docs": 0,
+   "guidance": 0,
+   "other": 0,
+   "source": 0,
+   "tests": 0
+  },
+  "deletions": 0,
+  "files": 0,
+  "insertions": 0
+ }
+}
+-- fbl-doctor on this repository:
+nothing found

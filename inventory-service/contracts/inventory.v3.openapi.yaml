@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: Inventory service
+  version: 3.0.0
+  description: Owned by the inventory team. Stock levels per SKU.
+paths:
+  /v2/stock/{sku}:
+    get:
+      operationId: getStock
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema: {type: string, pattern: "^[A-Z0-9-]{3,32}$"}
+      responses:
+        "200":
+          description: Stock level for one SKU
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sku, quantity_on_hand, reserved]
+                properties:
+                  sku: {type: string}
+                  quantity_on_hand: {type: integer, minimum: 0}
+                  reserved: {type: integer, minimum: 0}
+              example: {sku: "MUG-001", quantity_on_hand: 12, reserved: 3}
+        "404":
+          description: Unknown SKU
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error]
+                properties:
+                  error: {type: string, enum: [unknown_sku]}

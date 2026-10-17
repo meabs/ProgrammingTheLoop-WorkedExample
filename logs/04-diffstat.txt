@@ -1,0 +1,5 @@
+### Stage 6: the diff a reviewer sees
+ app/clients/inventory.py   | 33 +++++++++++++++++++++
+ app/main.py                | 17 ++++++++++-
+ tests/test_availability.py | 72 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 121 insertions(+), 1 deletion(-)

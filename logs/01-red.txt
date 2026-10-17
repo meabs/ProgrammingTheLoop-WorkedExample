@@ -1,0 +1,6 @@
+### Stage 4a: red (new tests, old code)
+FAILED tests/test_availability.py::test_in_stock - assert 404 == 200
+FAILED tests/test_availability.py::test_all_reserved - AssertionError: assert...
+FAILED tests/test_availability.py::test_inventory_outside_contract_is_502_not_a_guess
+FAILED tests/test_availability.py::test_inventory_unreachable_is_502 - Assert...
+4 failed, 3 passed in 0.38s

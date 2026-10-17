@@ -1,0 +1,9 @@
+### Missing knowledge: no contract, names guessed
+8 passed in 0.27s
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/MUG-001/availability
+{"detail":"unknown to inventory"} [404]
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/TEE-042/availability
+{"detail":"unknown to inventory"} [404]
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/NOPE-000/availability
+{"detail":"unknown product"} [404]
+(live check: 2 of 3 responses not as the contract promises; exit 1)

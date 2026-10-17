@@ -1,0 +1,15 @@
+### Stale knowledge: provider has moved to 3.0.0, consumer still pinned to 2.1.0
+== contract freshness
+STALE: pinned inventory.openapi.yaml 2.1.0, provider publishes 3.0.0 (major change)
+(exit code of scripts/test.sh: 1)
+-- tests alone, without the freshness gate:
+9 passed in 0.27s
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/MUG-001/availability
+inventory response outside contract for MUG-001: {'sku': 'MUG-001', 'quantity_on_hand': 12, 'reserved': 3}
+{"detail":"inventory unavailable"} [502]
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/TEE-042/availability
+inventory response outside contract for TEE-042: {'sku': 'TEE-042', 'quantity_on_hand': 2, 'reserved': 2}
+{"detail":"inventory unavailable"} [502]
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/NOPE-000/availability
+{"detail":"unknown product"} [404]
+(live check: 2 of 3 responses not as the contract promises; exit 1)
