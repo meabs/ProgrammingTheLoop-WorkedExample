@@ -1,0 +1,182 @@
+diff --git a/app/clients/inventory.py b/app/clients/inventory.py
+new file mode 100644
+index 0000000..22beae7
+--- /dev/null
++++ b/app/clients/inventory.py
+@@ -0,0 +1,64 @@
++"""Inventory stock lookups via the inventory service HTTP API."""
++import logging
++import os
++
++import httpx
++
++logger = logging.getLogger(__name__)
++
++BASE_URL = os.environ.get("INVENTORY_URL", "http://localhost:8000").rstrip("/")
++
++
++class UnknownSku(Exception):
++    """SKU not known to inventory."""
++
++
++class InventoryUnavailable(Exception):
++    """Inventory could not be reached or returned an invalid response."""
++
++
++def _parse_stock(payload: object) -> dict:
++    if not isinstance(payload, dict):
++        raise InventoryUnavailable("response is not a JSON object")
++    sku = payload.get("sku")
++    on_hand = payload.get("on_hand")
++    reserved = payload.get("reserved")
++    if not isinstance(sku, str):
++        raise InventoryUnavailable("missing or invalid sku")
++    if not isinstance(on_hand, int) or on_hand < 0:
++        raise InventoryUnavailable("missing or invalid on_hand")
++    if not isinstance(reserved, int) or reserved < 0:
++        raise InventoryUnavailable("missing or invalid reserved")
++    return {"sku": sku, "on_hand": on_hand, "reserved": reserved}
++
++
++def get_stock(sku: str) -> dict:
++    url = f"{BASE_URL}/v2/stock/{sku}"
++    try:
++        response = httpx.get(url, timeout=5.0)
++    except httpx.HTTPError as exc:
++        logger.error("inventory request failed for %s: %s", sku, exc)
++        raise InventoryUnavailable(str(exc)) from exc
++
++    if response.status_code == 404:
++        raise UnknownSku()
++    if response.status_code != 200:
++        logger.error(
++            "inventory unexpected status for %s: %s body=%s",
++            sku,
++            response.status_code,
++            response.text[:500],
++        )
++        raise InventoryUnavailable(f"status {response.status_code}")
++
++    try:
++        payload = response.json()
++    except ValueError as exc:
++        logger.error("inventory invalid JSON for %s: %s", sku, exc)
++        raise InventoryUnavailable("invalid JSON") from exc
++
++    try:
++        return _parse_stock(payload)
++    except InventoryUnavailable as exc:
++        logger.error("inventory contract violation for %s: %s", sku, exc)
++        raise
+diff --git a/app/main.py b/app/main.py
+index 82d72e7..bfa3011 100644
+--- a/app/main.py
++++ b/app/main.py
+@@ -1,6 +1,10 @@
++import logging
++
+ from fastapi import FastAPI, HTTPException
+ 
+-from app.clients import catalogue
++from app.clients import catalogue, inventory
++
++logger = logging.getLogger(__name__)
+ 
+ app = FastAPI(title="storefront-api")
+ 
+@@ -11,3 +15,22 @@ def read_product(sku: str):
+     if product is None:
+         raise HTTPException(status_code=404, detail="unknown product")
+     return product
++
++
++@app.get("/products/{sku}/availability")
++def read_availability(sku: str):
++    if catalogue.get_product(sku) is None:
++        raise HTTPException(status_code=404, detail="unknown product")
++    try:
++        stock = inventory.get_stock(sku)
++    except inventory.UnknownSku:
++        raise HTTPException(status_code=404, detail="unknown product")
++    except inventory.InventoryUnavailable as exc:
++        logger.error("inventory unavailable for %s: %s", sku, exc)
++        raise HTTPException(status_code=502, detail="inventory unavailable")
++    available = stock["on_hand"] - stock["reserved"]
++    return {
++        "sku": stock["sku"],
++        "available": available,
++        "in_stock": available > 0,
++    }
+diff --git a/tests/test_availability.py b/tests/test_availability.py
+new file mode 100644
+index 0000000..ba03424
+--- /dev/null
++++ b/tests/test_availability.py
+@@ -0,0 +1,67 @@
++import logging
++from unittest.mock import patch
++
++from fastapi.testclient import TestClient
++
++from app.clients import inventory
++from app.main import app
++
++client = TestClient(app)
++
++
++def test_known_sku_with_stock():
++    with patch.object(
++        inventory,
++        "get_stock",
++        return_value={"sku": "MUG-001", "on_hand": 12, "reserved": 3},
++    ):
++        r = client.get("/products/MUG-001/availability")
++    assert r.status_code == 200
++    assert r.json() == {"sku": "MUG-001", "available": 9, "in_stock": True}
++
++
++def test_known_sku_fully_reserved():
++    with patch.object(
++        inventory,
++        "get_stock",
++        return_value={"sku": "TEE-042", "on_hand": 10, "reserved": 10},
++    ):
++        r = client.get("/products/TEE-042/availability")
++    assert r.status_code == 200
++    assert r.json() == {"sku": "TEE-042", "available": 0, "in_stock": False}
++
++
++def test_unknown_catalogue_sku():
++    r = client.get("/products/NOPE-000/availability")
++    assert r.status_code == 404
++
++
++def test_known_catalogue_unknown_inventory_sku():
++    with patch.object(inventory, "get_stock", side_effect=inventory.UnknownSku()):
++        r = client.get("/products/MUG-001/availability")
++    assert r.status_code == 404
++
++
++def test_inventory_unreachable():
++    with patch.object(
++        inventory, "get_stock", side_effect=inventory.InventoryUnavailable("connection refused")
++    ):
++        r = client.get("/products/MUG-001/availability")
++    assert r.status_code == 502
++
++
++def test_inventory_invalid_response():
++    with patch.object(
++        inventory, "get_stock", side_effect=inventory.InventoryUnavailable("bad payload")
++    ):
++        r = client.get("/products/MUG-001/availability")
++    assert r.status_code == 502
++
++
++def test_inventory_error_is_logged(caplog):
++    with patch.object(
++        inventory, "get_stock", side_effect=inventory.InventoryUnavailable("timeout")
++    ):
++        with caplog.at_level(logging.ERROR):
++            client.get("/products/MUG-001/availability")
++    assert any("inventory" in rec.message.lower() for rec in caplog.records)

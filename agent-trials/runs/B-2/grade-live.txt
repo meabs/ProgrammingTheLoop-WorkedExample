@@ -1,0 +1,10 @@
+$ ./run_live.sh 2.1.0  (exit 1)
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/MUG-001/availability
+{"detail":"inventory unavailable"} [502]
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/TEE-042/availability
+{"detail":"inventory unavailable"} [502]
+$ curl -s -w ' [%{http_code}]' localhost:8000/products/NOPE-000/availability
+{"detail":"unknown product"} [404]
+(live check: 2 of 3 responses not as the contract promises; exit 1)
+inventory request failed sku=MUG-001: [Errno 111] Connection refused
+inventory request failed sku=TEE-042: [Errno 111] Connection refused

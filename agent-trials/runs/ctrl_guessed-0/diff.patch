@@ -1,0 +1,137 @@
+diff --git a/app/clients/inventory.py b/app/clients/inventory.py
+new file mode 100644
+index 0000000..2d18552
+--- /dev/null
++++ b/app/clients/inventory.py
+@@ -0,0 +1,33 @@
++"""Client for the inventory service. Contract: contracts/inventory.openapi.yaml (pinned in contracts/PINNED)."""
++import logging
++import os
++
++import httpx
++
++log = logging.getLogger(__name__)
++BASE_URL = os.environ.get("INVENTORY_URL", "http://localhost:8001")
++
++
++class InventoryUnavailable(Exception):
++    """Inventory could not be reached or answered outside its contract."""
++
++
++def get_stock(sku: str, transport: httpx.BaseTransport | None = None):
++    """Return (on_hand, reserved), or None if inventory does not know the SKU."""
++    try:
++        with httpx.Client(base_url=BASE_URL, transport=transport, timeout=2.0) as http:
++            r = http.get(f"/stock/{sku}")
++    except httpx.HTTPError as exc:
++        log.error("inventory unreachable for %s: %s", sku, exc)
++        raise InventoryUnavailable(str(exc)) from exc
++    if r.status_code == 404:
++        return None
++    if r.status_code != 200:
++        log.error("inventory returned %s for %s", r.status_code, sku)
++        raise InventoryUnavailable(f"status {r.status_code}")
++    body = r.json()
++    try:
++        return int(body["quantity"]), int(body.get("reserved", 0))
++    except (KeyError, TypeError, ValueError) as exc:
++        log.error("inventory response outside contract for %s: %r", sku, body)
++        raise InventoryUnavailable("response outside contract") from exc
+diff --git a/app/main.py b/app/main.py
+index 82d72e7..0d5e892 100644
+--- a/app/main.py
++++ b/app/main.py
+@@ -1,6 +1,6 @@
+ from fastapi import FastAPI, HTTPException
+ 
+-from app.clients import catalogue
++from app.clients import catalogue, inventory
+ 
+ app = FastAPI(title="storefront-api")
+ 
+@@ -11,3 +11,18 @@ def read_product(sku: str):
+     if product is None:
+         raise HTTPException(status_code=404, detail="unknown product")
+     return product
++
++
++@app.get("/products/{sku}/availability")
++def read_availability(sku: str):
++    if catalogue.get_product(sku) is None:
++        raise HTTPException(status_code=404, detail="unknown product")
++    try:
++        stock = inventory.get_stock(sku)
++    except inventory.InventoryUnavailable:
++        raise HTTPException(status_code=502, detail="inventory unavailable") from None
++    if stock is None:
++        raise HTTPException(status_code=404, detail="unknown to inventory")
++    on_hand, reserved = stock
++    available = max(on_hand - reserved, 0)
++    return {"sku": sku, "available": available, "in_stock": available > 0}
+diff --git a/tests/test_availability.py b/tests/test_availability.py
+new file mode 100644
+index 0000000..bf0740b
+--- /dev/null
++++ b/tests/test_availability.py
+@@ -0,0 +1,61 @@
++"""Acceptance criteria 1-4 from docs/brief.md, against a fake inventory built from the pinned contract."""
++import httpx
++import pytest
++from fastapi.testclient import TestClient
++
++from app.clients import inventory
++from app.main import app
++
++# No contract in this scenario: the stub below uses the guessed path and field names.
++
++
++def fake_inventory(stock):
++    """A stub that answers only on the contract's path, with the contract's field names."""
++    def handler(request):
++        sku = request.url.path.removeprefix("/stock/")
++        if not request.url.path.startswith("/stock/"):
++            return httpx.Response(404)
++        if sku not in stock:
++            return httpx.Response(404, json={"error": "unknown_sku"})
++        on_hand, reserved = stock[sku]
++        return httpx.Response(200, json={"sku": sku, "quantity": on_hand, "reserved": reserved})
++    return httpx.MockTransport(handler)
++
++
++@pytest.fixture
++def client(monkeypatch):
++    def use(transport):
++        real = inventory.get_stock
++        monkeypatch.setattr(inventory, "get_stock", lambda sku: real(sku, transport=transport))
++        return TestClient(app)
++    return use
++
++
++def test_in_stock(client):
++    r = client(fake_inventory({"MUG-001": (12, 3)})).get("/products/MUG-001/availability")
++    assert r.status_code == 200
++    assert r.json() == {"sku": "MUG-001", "available": 9, "in_stock": True}
++
++
++def test_all_reserved(client):
++    r = client(fake_inventory({"TEE-042": (2, 2)})).get("/products/TEE-042/availability")
++    assert r.json() == {"sku": "TEE-042", "available": 0, "in_stock": False}
++
++
++def test_unknown_to_catalogue(client):
++    assert client(fake_inventory({})).get("/products/NOPE-000/availability").status_code == 404
++
++
++def test_unknown_to_inventory(client):
++    assert client(fake_inventory({})).get("/products/MUG-001/availability").status_code == 404
++
++
++def test_inventory_outside_contract_is_502_not_a_guess(client):
++    bad = httpx.MockTransport(lambda req: httpx.Response(200, json={"sku": "MUG-001", "qty": 5}))
++    assert client(bad).get("/products/MUG-001/availability").status_code == 502
++
++
++def test_inventory_unreachable_is_502(client):
++    def boom(request):
++        raise httpx.ConnectError("connection refused")
++    assert client(httpx.MockTransport(boom)).get("/products/MUG-001/availability").status_code == 502

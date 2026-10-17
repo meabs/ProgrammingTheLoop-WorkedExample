@@ -1,0 +1,9 @@
+{
+ "ran": [
+  "bash scripts/test.sh",
+  "../.venv/bin/python -m pytest tests/test_availability.py -q"
+ ],
+ "result": "passed",
+ "could_not_verify": "Live curl against a running inventory service (acceptance criterion 6); whether contracts/inventory.openapi.yaml matches the provider's published contract",
+ "missing": "Running inventory-service instance; provider contract at inventory-service/contracts/inventory.openapi.yaml; documented INVENTORY_URL and sample SKUs for manual curl"
+}

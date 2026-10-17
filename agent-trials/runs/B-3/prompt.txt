@@ -1,0 +1,7 @@
+Read AGENTS.md and docs/brief.md, then carry out the brief.
+
+Before you change anything, restate the goal and the acceptance criteria in your own words, list the files you expect to touch, and say which facts about the inventory service you will rely on and where they come from. You are working alone and nobody will answer questions, so do not wait for confirmation: continue straight on.
+
+Work test-first: write tests for the acceptance criteria, run them and confirm they fail, then implement until they pass. Run the repository's checks before you finish. In your final message, report what you changed, the commands you ran and their real output, and anything you could not verify.
+
+When you finish, end your final message with one line starting with VERIFICATION: followed by a JSON object with these keys: "ran" (the commands you ran to check your work), "result" ("passed", "failed" or "not-run"), "could_not_verify" (anything you could not check) and "missing" (anything that would have made checking easier, such as a test command, a fixture or a documented step). Be literal: say not-run if you did not run the tests.

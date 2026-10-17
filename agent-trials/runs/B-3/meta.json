@@ -1,0 +1,10 @@
+{
+  "arm": "B",
+  "n": 3,
+  "model": "composer-2.5",
+  "started": "2026-10-17T11:29:37+01:00",
+  "seconds": 63.7,
+  "exit_code": 0,
+  "killed": null,
+  "cli_version": "2026.10.16-e3cb207"
+}

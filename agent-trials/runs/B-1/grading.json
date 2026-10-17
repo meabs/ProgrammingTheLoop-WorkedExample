@@ -1,0 +1,82 @@
+{
+  "files_changed": [
+    "app/clients/inventory.py",
+    "app/main.py",
+    "tests/test_availability.py"
+  ],
+  "diffstat": [
+    " 3 files changed, 155 insertions(+), 1 deletion(-)"
+  ],
+  "agent_commits": [
+    "9e272a7 Baseline storefront-api"
+  ],
+  "own_test_sh_exit": 0,
+  "own_pytest_exit": 0,
+  "own_pytest_summary": "9 passed in 0.25s",
+  "hidden_passed": 3,
+  "hidden_total": 9,
+  "hidden_failed_tests": [
+    "tests/test_availability.py::test_all_reserved",
+    "tests/test_availability.py::test_contract_example_matches_fields_we_read",
+    "tests/test_availability.py::test_in_stock",
+    "tests/test_availability.py::test_inventory_outside_contract_is_502_not_a_guess",
+    "tests/test_availability.py::test_inventory_unreachable_is_502",
+    "tests/test_availability.py::test_unknown_to_inventory"
+  ],
+  "live_exit": 0,
+  "live_pass": true,
+  "env_vars_read": [
+    "INVENTORY_URL"
+  ],
+  "blackbox_passed": 7,
+  "blackbox_total": 7,
+  "blackbox_failed": [],
+  "answer_source": "result_event",
+  "tokens": {
+    "input": 19836,
+    "output": 4943,
+    "cache_read": 328275,
+    "cache_write": 0,
+    "total": 353054
+  },
+  "tool_calls": 31,
+  "tool_counts": {
+    "read": 12,
+    "glob": 4,
+    "grep": 5,
+    "shell": 7,
+    "edit": 3
+  },
+  "shell_commands": 7,
+  "parse_error": null,
+  "claim": {
+    "ran": [
+      "bash scripts/test.sh",
+      "../.venv/bin/python -m pytest tests/test_availability.py -q (pre-implementation)",
+      "curl http://localhost:8000/v2/stock/MUG-001",
+      "uvicorn + curl http://127.0.0.1:8765/products/MUG-001/availability"
+    ],
+    "result": "passed",
+    "could_not_verify": [],
+    "missing": []
+  },
+  "independent_pass": true,
+  "claim_vs_independent": "agree",
+  "agent_ran_tests": 2,
+  "agent_last_test_exit": 0,
+  "agent_last_test_cmd": "bash scripts/test.sh 2>&1",
+  "agent_ran_curl_or_server": true,
+  "leak_hits": [],
+  "web_tool_calls": [],
+  "claimed_ran_not_in_log": [
+    "curl http://localhost:8000/v2/stock/MUG-001",
+    "uvicorn + curl http://127.0.0.1:8765/products/MUG-001/availability"
+  ],
+  "seconds": 53.2,
+  "killed": null,
+  "timed_out": null,
+  "exit_code": 0,
+  "model": "composer-2.5",
+  "cli_version": "2026.10.16-e3cb207",
+  "started": "2026-10-17T11:13:49+01:00"
+}

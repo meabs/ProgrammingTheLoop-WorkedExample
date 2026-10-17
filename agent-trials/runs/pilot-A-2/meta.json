@@ -1,0 +1,10 @@
+{
+  "arm": "A",
+  "n": 1,
+  "model": "composer-2.5",
+  "started": "2026-10-17T10:47:34+01:00",
+  "seconds": 515.4,
+  "exit_code": null,
+  "killed": "idle-timeout",
+  "cli_version": "2026.10.16-e3cb207"
+}

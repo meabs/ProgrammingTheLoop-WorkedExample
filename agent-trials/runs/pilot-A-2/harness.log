@@ -1,0 +1,1 @@
+{"own_test_sh_exit": 1, "own_pytest_summary": "8 passed in 0.27s", "hidden_passed": 3, "live_pass": false, "blackbox_passed": 0, "claim_vs_independent": "no_claim", "tokens": null, "seconds": 515.4, "leak_hits": ["curl -sS \"https://api.github.com/repos/mendersoftware/mender-server/contents/backend/docs/api/inventory.openapi.yaml\" 2>&1 | head -5"], "claimed_ran_not_in_log": []}

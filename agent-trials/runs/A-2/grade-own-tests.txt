@@ -1,0 +1,10 @@
+$ bash scripts/test.sh  (exit 0)
+== contract freshness
+ok: pinned 1.0.0, provider publishes 1.0.0
+== tests
+........                                                                 [100%]
+8 passed in 0.27s
+
+$ python -m pytest -q  (exit 0)
+........                                                                 [100%]
+8 passed in 0.26s

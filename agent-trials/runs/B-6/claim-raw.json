@@ -1,0 +1,9 @@
+{
+ "ran": [
+  "bash scripts/test.sh",
+  "curl against local inventory stub and storefront-api"
+ ],
+ "result": "passed",
+ "could_not_verify": "Live inventory team service; only a local contract-compliant stub was used for curl",
+ "missing": "Runnable inventory-service implementation or documented base URL for integration testing"
+}

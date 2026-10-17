@@ -1,0 +1,81 @@
+{
+  "env_pointed_at_fake": {
+    "INVENTORY_URL": "http://127.0.0.1:8001"
+  },
+  "results": [
+    {
+      "mode": "contract",
+      "sku": "MUG-001",
+      "want": 200,
+      "got_status": "200",
+      "got_body": {
+        "sku": "MUG-001",
+        "available": 9,
+        "in_stock": true
+      },
+      "ok": true
+    },
+    {
+      "mode": "contract",
+      "sku": "TEE-042",
+      "want": 200,
+      "got_status": "200",
+      "got_body": {
+        "sku": "TEE-042",
+        "available": 0,
+        "in_stock": false
+      },
+      "ok": true
+    },
+    {
+      "mode": "contract",
+      "sku": "NOPE-000",
+      "want": 404,
+      "got_status": "404",
+      "got_body": {
+        "detail": "unknown product"
+      },
+      "ok": true
+    },
+    {
+      "mode": "unknown_mug",
+      "sku": "MUG-001",
+      "want": 404,
+      "got_status": "404",
+      "got_body": {
+        "detail": "unknown product"
+      },
+      "ok": true
+    },
+    {
+      "mode": "outside",
+      "sku": "MUG-001",
+      "want": 502,
+      "got_status": "502",
+      "got_body": {
+        "detail": "inventory unavailable"
+      },
+      "ok": true
+    },
+    {
+      "mode": "error500",
+      "sku": "MUG-001",
+      "want": 502,
+      "got_status": "502",
+      "got_body": {
+        "detail": "inventory unavailable"
+      },
+      "ok": true
+    },
+    {
+      "mode": "down",
+      "sku": "MUG-001",
+      "want": 502,
+      "got_status": "502",
+      "got_body": {
+        "detail": "inventory unavailable"
+      },
+      "ok": true
+    }
+  ]
+}

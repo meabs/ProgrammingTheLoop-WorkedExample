@@ -1,0 +1,62 @@
+[
+  {
+    "command": "ls -la <project>/storefront-api/../.venv/bin/python 2>/dev/null || ls -la <project>/.venv/bin/python 2>/dev/null; which python3",
+    "exit_code": 0,
+    "output": "lrwxrwxrwx 1 user user 19 Oct 17 10:22 <project>/storefront-api/../.venv/bin/python -> /usr/bin/python3.13\n/usr/bin/python3\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && bash scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n..                                                                       [100%]\n2 passed in 0.21s\n",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/python -c \"import httpx; print(httpx.__version__)\" 2>&1; <project>/.venv/bin/pip list 2>/dev/null | head -20",
+    "exit_code": 0,
+    "output": "0.28.1\n",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/pip list | rg -i 'respx|pytest|fastapi|httpx'",
+    "exit_code": 1,
+    "output": "--: line 1: <project>/.venv/bin/pip: No such file or directory\n",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/python -m pip list 2>&1 | head -30",
+    "exit_code": 0,
+    "output": "<project>/.venv/bin/python: No module named pip\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && ../.venv/bin/python -m pytest tests/test_availability.py -q 2>&1",
+    "exit_code": 0,
+    "output": "......                                                                   [100%]\n6 passed in 0.25s\n",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/python -c \"import uvicorn; print(uvicorn.__version__)\"",
+    "exit_code": 0,
+    "output": "0.54.0\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && bash scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n........                                                                 [100%]\n8 passed in 0.27s\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && ../.venv/bin/python scripts/inventory_stub.py &\nSTUB_PID=$!\nsleep 0.3\nINVENTORY_URL=http://127.0.0.1:9000 ../.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8765 &\nAPI_PID=$!\nsleep 0.5\n{\n  echo \"# curl against storefront-api with inventory stub on :9000\"\n  echo \"$ curl -s -w '\\nHTTP %{http_code}\\n' http://127.0.0.1:8765/products/MUG-001/availability\"\n  curl -s -w '\\nHTTP %{http_code}\\n' http://127.0.0.1:8765/products/MUG-001/availability\n  echo \"\"\n  echo \"$ curl -s -w '\\nHTTP %{http_code}\\n' http://127.0.0.1:8765/products/TEE-042/availability\"\n  curl -s -w '\\nHTTP %{http_code}\\n' http://127.0.0.1:8765/products/TEE-042/availability\n} | tee docs/availability-curl.txt\nkill $API_PID $STUB_PID 2>/dev/null\nwait $API_PID $STUB_PID 2>/dev/null\ntrue\n",
+    "exit_code": 0,
+    "output": "# curl against storefront-api with inventory stub on :9000\n$ curl -s -w '\\nHTTP %{http_code}\\n' http://127.0.0.1:8765/products/MUG-001/availability\nINFO:     127.0.0.1:51814 - \"GET /products/MUG-001/availability HTTP/1.1\" 200 OK\n{\"sku\":\"MUG-001\",\"available\":9,\"in_stock\":true}\nHTTP 200\n\n$ curl -s -w '\\nHTTP %{http_code}\\n' http://127.0.0.1:8765/products/TEE-042/availability\nINFO:     127.0.0.1:51820 - \"GET /products/TEE-042/availability HTTP/1.1\" 200 OK\n{\"sku\":\"TEE-042\",\"available\":0,\"in_stock\":false}\nHTTP 200\nINFO:     Started server process [709]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://127.0.0.1:8765 (Press CTRL+C to quit)\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [709]\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && bash scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n........                                                                 [100%]\n8 passed in 0.27s\n",
+    "rejected": false
+  }
+]

@@ -1,0 +1,7 @@
+$ bash scripts/test.sh  (exit 1)
+== contract freshness
+STALE: pinned inventory.openapi.yaml 1.0.0, provider publishes 2.1.0 (major change)
+
+$ python -m pytest -q  (exit 0)
+..........                                                               [100%]
+10 passed in 0.28s

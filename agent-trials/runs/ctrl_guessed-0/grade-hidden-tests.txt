@@ -1,0 +1,120 @@
+FFF..F...                                                                [100%]
+=================================== FAILURES ===================================
+_________________ test_contract_example_matches_fields_we_read _________________
+
+sku = 'MUG-001', transport = <httpx.MockTransport object at 0x7fa53d573e00>
+
+    def get_stock(sku: str, transport: httpx.BaseTransport | None = None):
+        """Return (on_hand, reserved), or None if inventory does not know the SKU."""
+        try:
+            with httpx.Client(base_url=BASE_URL, transport=transport, timeout=2.0) as http:
+                r = http.get(f"/stock/{sku}")
+        except httpx.HTTPError as exc:
+            log.error("inventory unreachable for %s: %s", sku, exc)
+            raise InventoryUnavailable(str(exc)) from exc
+        if r.status_code == 404:
+            return None
+        if r.status_code != 200:
+            log.error("inventory returned %s for %s", r.status_code, sku)
+            raise InventoryUnavailable(f"status {r.status_code}")
+        body = r.json()
+        try:
+>           return int(body["quantity"]), int(body.get("reserved", 0))
+                       ^^^^^^^^^^^^^^^^
+E           KeyError: 'quantity'
+
+app/clients/inventory.py:30: KeyError
+
+The above exception was the direct cause of the following exception:
+
+    def test_contract_example_matches_fields_we_read():
+        example = OK_SCHEMA["example"]
+        assert {"on_hand", "reserved"} <= set(OK_SCHEMA["schema"]["required"])
+>       assert inventory.get_stock("MUG-001", transport=httpx.MockTransport(
+            lambda req: httpx.Response(200, json=example))) == (12, 3)
+
+tests/test_availability.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+sku = 'MUG-001', transport = <httpx.MockTransport object at 0x7fa53d573e00>
+
+    def get_stock(sku: str, transport: httpx.BaseTransport | None = None):
+        """Return (on_hand, reserved), or None if inventory does not know the SKU."""
+        try:
+            with httpx.Client(base_url=BASE_URL, transport=transport, timeout=2.0) as http:
+                r = http.get(f"/stock/{sku}")
+        except httpx.HTTPError as exc:
+            log.error("inventory unreachable for %s: %s", sku, exc)
+            raise InventoryUnavailable(str(exc)) from exc
+        if r.status_code == 404:
+            return None
+        if r.status_code != 200:
+            log.error("inventory returned %s for %s", r.status_code, sku)
+            raise InventoryUnavailable(f"status {r.status_code}")
+        body = r.json()
+        try:
+            return int(body["quantity"]), int(body.get("reserved", 0))
+        except (KeyError, TypeError, ValueError) as exc:
+            log.error("inventory response outside contract for %s: %r", sku, body)
+>           raise InventoryUnavailable("response outside contract") from exc
+E           app.clients.inventory.InventoryUnavailable: response outside contract
+
+app/clients/inventory.py:33: InventoryUnavailable
+------------------------------ Captured log call -------------------------------
+ERROR    app.clients.inventory:inventory.py:32 inventory response outside contract for MUG-001: {'sku': 'MUG-001', 'on_hand': 12, 'reserved': 3}
+________________________________ test_in_stock _________________________________
+
+client = <function client.<locals>.use at 0x7fa53c3d1ee0>
+
+    def test_in_stock(client):
+        r = client(fake_inventory({"MUG-001": (12, 3)})).get("/products/MUG-001/availability")
+>       assert r.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests/test_availability.py:47: AssertionError
+______________________________ test_all_reserved _______________________________
+
+client = <function client.<locals>.use at 0x7fa53c3d34c0>
+
+    def test_all_reserved(client):
+        r = client(fake_inventory({"TEE-042": (2, 2)})).get("/products/TEE-042/availability")
+>       assert r.json() == {"sku": "TEE-042", "available": 0, "in_stock": False}
+E       AssertionError: assert {'detail': 'u...to inventory'} == {'sku': 'TEE-...stock': False}
+E         
+E         Left contains 1 more item:
+E         {'detail': 'unknown to inventory'}
+E         Right contains 3 more items:
+E         {'available': 0, 'in_stock': False, 'sku': 'TEE-042'}
+E         Use -v to get more diff
+
+tests/test_availability.py:53: AssertionError
+______________ test_inventory_outside_contract_is_502_not_a_guess ______________
+
+client = <function client.<locals>.use at 0x7fa53c3d1da0>
+
+    def test_inventory_outside_contract_is_502_not_a_guess(client):
+        bad = httpx.MockTransport(lambda req: httpx.Response(200, json={"sku": "MUG-001", "quantity": 5}))
+>       assert client(bad).get("/products/MUG-001/availability").status_code == 502
+E       AssertionError: assert 200 == 502
+E        +  where 200 = <Response [200 OK]>.status_code
+E        +    where <Response [200 OK]> = get('/products/MUG-001/availability')
+E        +      where get = <starlette.testclient.TestClient object at 0x7fa53c0485f0>.get
+E        +        where <starlette.testclient.TestClient object at 0x7fa53c0485f0> = <function client.<locals>.use at 0x7fa53c3d1da0>(<httpx.MockTransport object at 0x7fa53c32ec30>)
+
+tests/test_availability.py:66: AssertionError
+==================================== PASSES ====================================
+______________________ test_inventory_unreachable_is_502 _______________________
+------------------------------ Captured log call -------------------------------
+ERROR    app.clients.inventory:inventory.py:21 inventory unreachable for MUG-001: connection refused
+=========================== short test summary info ============================
+PASSED tests/test_availability.py::test_unknown_to_catalogue
+PASSED tests/test_availability.py::test_unknown_to_inventory
+PASSED tests/test_availability.py::test_inventory_unreachable_is_502
+PASSED tests/test_products.py::test_known_product
+PASSED tests/test_products.py::test_unknown_product
+FAILED tests/test_availability.py::test_contract_example_matches_fields_we_read
+FAILED tests/test_availability.py::test_in_stock - assert 404 == 200
+FAILED tests/test_availability.py::test_all_reserved - AssertionError: assert...
+FAILED tests/test_availability.py::test_inventory_outside_contract_is_502_not_a_guess
+4 failed, 5 passed in 0.32s

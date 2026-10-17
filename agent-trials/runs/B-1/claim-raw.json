@@ -1,0 +1,11 @@
+{
+ "ran": [
+  "bash scripts/test.sh",
+  "../.venv/bin/python -m pytest tests/test_availability.py -q (pre-implementation)",
+  "curl http://localhost:8000/v2/stock/MUG-001",
+  "uvicorn + curl http://127.0.0.1:8765/products/MUG-001/availability"
+ ],
+ "result": "passed",
+ "could_not_verify": "Live inventory service not running; end-to-end 200 availability via curl against inventory",
+ "missing": "Runnable inventory-service instance or documented INVENTORY_URL for integration curl"
+}

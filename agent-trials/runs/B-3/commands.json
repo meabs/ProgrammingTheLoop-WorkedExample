@@ -1,0 +1,62 @@
+[
+  {
+    "command": "ls -la <project>/storefront-api/../.venv/bin/python 2>/dev/null || ls -la <project>/.venv/bin/python 2>/dev/null; curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/v2/stock/MUG-001 2>/dev/null || echo \"no curl\"",
+    "exit_code": 0,
+    "output": "lrwxrwxrwx 1 user user 19 Oct 17 10:22 <project>/storefront-api/../.venv/bin/python -> /usr/bin/python3.13\n000no curl\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && bash scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n..                                                                       [100%]\n2 passed in 0.23s\n",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/python -c \"import httpx; print(httpx.__version__)\" 2>&1; <project>/.venv/bin/pip list 2>&1 | head -30",
+    "exit_code": 0,
+    "output": "0.28.1\n--: line 1: <project>/.venv/bin/pip: No such file or directory\n",
+    "rejected": false
+  },
+  {
+    "command": "ss -tlnp 2>/dev/null | head -20; curl -s http://127.0.0.1:8000/ 2>&1 | head -5",
+    "exit_code": 0,
+    "output": "[host system listing redacted]",
+    "rejected": false
+  },
+  {
+    "command": "<project>/.venv/bin/python -c \"import respx; print('respx ok')\" 2>&1; <project>/.venv/bin/python -c \"from unittest.mock import patch; import httpx; print('httpx', httpx.__version__)\"",
+    "exit_code": 0,
+    "output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import respx; print('respx ok')\n    ^^^^^^^^^^^^\nModuleNotFoundError: No module named 'respx'\nhttpx 0.28.1\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && ../.venv/bin/python -m pytest tests/test_availability.py -q 2>&1",
+    "exit_code": 2,
+    "output": "\n==================================== ERRORS ====================================\n_________________ ERROR collecting tests/test_availability.py __________________\nImportError while importing test module '<project>/storefront-api/tests/test_availability.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_availability.py:7: in <module>\n    from app.clients import inventory\nE   ImportError: cannot import name 'inventory' from 'app.clients' (<project>/storefront-api/app/clients/__init__.py)\n=========================== short test summary info ============================\nERROR tests/test_availability.py\n!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 error in 0.30s\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && bash scripts/test.sh 2>&1",
+    "exit_code": 0,
+    "output": "== contract freshness\nok: pinned 2.1.0, provider publishes 2.1.0\n== tests\n..........                                                               [100%]\n10 passed in 0.27s\n",
+    "rejected": false
+  },
+  {
+    "command": "find <workspace> -name '*inventory*' -type f 2>/dev/null | head -30",
+    "exit_code": 0,
+    "output": "<project>/storefront-api/app/clients/__pycache__/inventory.cpython-313.pyc\n<project>/storefront-api/app/clients/inventory.py\n<project>/storefront-api/contracts/inventory.openapi.yaml\n<project>/inventory-service/contracts/inventory.openapi.yaml\n",
+    "rejected": false
+  },
+  {
+    "command": "curl -s -w \"\\nHTTP %{http_code}\\n\" http://localhost:8080/v2/stock/MUG-001 2>&1; echo \"---\"; cd <project>/storefront-api && INVENTORY_URL=http://localhost:8080 timeout 2 ../.venv/bin/python -c \"\nimport uvicorn\nfrom fastapi import FastAPI, HTTPException\napp = FastAPI()\nSTOCK = {'MUG-001': {'on_hand': 12, 'reserved': 3}, 'TEE-042': {'on_hand': 10, 'reserved': 10}}\n@app.get('/v2/stock/{sku}')\ndef stock(sku):\n    if sku not in STOCK:\n        raise HTTPException(404, {'error': 'unknown_sku'})\n    s = STOCK[sku]\n    return {'sku': sku, **s}\n\" &\nsleep 0.5\ncurl -s http://localhost:8080/v2/stock/MUG-001 2>&1 || true",
+    "exit_code": 0,
+    "output": "\nHTTP 000\n---\n",
+    "rejected": false
+  },
+  {
+    "command": "cd <project>/storefront-api && ../.venv/bin/uvicorn --app-dir /tmp 'not needed' 2>/dev/null; cat > <tmp>/mock_inv.py << 'EOF'\nfrom fastapi import FastAPI, HTTPException\napp = FastAPI()\nSTOCK = {\"MUG-001\": {\"on_hand\": 12, \"reserved\": 3}, \"TEE-042\": {\"on_hand\": 10, \"reserved\": 10}}\n@app.get(\"/v2/stock/{sku}\")\ndef get_stock(sku: str):\n    if sku not in STOCK:\n        raise HTTPException(status_code=404, detail={\"error\": \"unknown_sku\"})\n    return {\"sku\": sku, **STOCK[sku]}\nEOF\n../.venv/bin/uvicorn mock_inv:app --host 127.0.0.1 --port 8080 --app-dir /tmp &\nINV_PID=$!\nsleep 1\necho \"== inventory ==\"\ncurl -s -w \"\\nHTTP %{http_code}\\n\" http://127.0.0.1:8080/v2/stock/MUG-001\nINVENTORY_URL=http://127.0.0.1:8080 ../.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 &\nAPI_PID=$!\nsleep 1\necho \"== storefront availability ==\"\ncurl -s -w \"\\nHTTP %{http_code}\\n\" http://127.0.0.1:8000/products/MUG-001/availability\nkill $INV_PID $API_PID 2>/dev/null\nwait $INV_PID $API_PID 2>/dev/null\ntrue\n",
+    "exit_code": 0,
+    "output": "== inventory ==\nINFO:     127.0.0.1:33202 - \"GET /v2/stock/MUG-001 HTTP/1.1\" 200 OK\n{\"sku\":\"MUG-001\",\"on_hand\":12,\"reserved\":3}\nHTTP 200\n== storefront availability ==\nINFO:     127.0.0.1:33210 - \"GET /v2/stock/MUG-001 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:38634 - \"GET /products/MUG-001/availability HTTP/1.1\" 200 OK\n{\"sku\":\"MUG-001\",\"available\":9,\"in_stock\":true}\nHTTP 200\nINFO:     Started server process [785]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)\nINFO:     Started server process [791]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)\nINFO:     Shutting down\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [791]\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [785]\n",
+    "rejected": false
+  }
+]
