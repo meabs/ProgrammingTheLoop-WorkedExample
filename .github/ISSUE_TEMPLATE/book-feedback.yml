@@ -1,0 +1,50 @@
+name: Book feedback
+description: Share what worked, what didn't, and what was missing
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Which chapter or page?
+      description: Optional. Rough is fine — e.g. Chapter 3, or "the freshness gate bit".
+      placeholder: Chapter 3 / page 42
+    validations:
+      required: false
+  - type: textarea
+    id: what-worked
+    attributes:
+      label: What worked
+      description: Anything that clicked, helped, or felt especially clear.
+      placeholder: What landed for you?
+    validations:
+      required: true
+  - type: textarea
+    id: what-didnt
+    attributes:
+      label: What didn't land or was unclear
+      description: Honest criticism is the useful kind. Be specific if you can.
+      placeholder: What left you stuck or unsure?
+    validations:
+      required: true
+  - type: textarea
+    id: missing
+    attributes:
+      label: Anything missing
+      description: Gaps, questions you wished the book answered, or topics that deserved more space.
+      placeholder: What did you look for and not find?
+    validations:
+      required: false
+  - type: dropdown
+    id: agent-tool
+    attributes:
+      label: How do you use coding agents?
+      description: Optional. Helps me understand the context you're reading from.
+      options:
+        - Cursor
+        - Codex
+        - Claude Code
+        - Copilot
+        - other
+    validations:
+      required: false
