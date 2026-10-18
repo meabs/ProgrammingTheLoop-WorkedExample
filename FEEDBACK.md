@@ -6,8 +6,8 @@ If something helped, confused you or felt off, I'd like to hear it. Honest criti
 
 ## Two ways to write in
 
-- **[Book feedback](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=book-feedback.yml)**: what worked, what was unclear, and anything you felt was missing.
-- **[Correction or error](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=correction.yml)**: a wrong fact, a typo, or something that misleads. Please say where it is and what it ought to say.
+- **[Book feedback](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=book-feedback.yml)**, what worked, what was unclear, and anything you felt was missing.
+- **[Correction or error](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=correction.yml)**, a wrong fact, a typo, or something that misleads. Please say where it is and what it ought to say.
 
 You can also open a blank issue if neither form fits.
 
