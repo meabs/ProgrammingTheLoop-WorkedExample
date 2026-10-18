@@ -4,6 +4,10 @@
 
 It is a **hand-written, reproducible engineering demonstration** of the failure modes found in the author's agent experiments: guessed facts, stale knowledge and unverifiable claims. The demonstration in logs 00–08 was hand-written to show the loop; separate coding-agent trials were run on this example afterwards and are published in [`agent-trials/`](agent-trials/README.md). The code changes in `stages/` were written by hand to show what a reasonable agent change looks like with and without the provider's contract. The prompts in the book are illustrative. The "guessed" variant deliberately uses names an agent without the contract might plausibly pick (`/stock/{sku}`, `quantity`); it is not an agent transcript either.
 
+## Feedback
+
+Reader notes welcome — see [`FEEDBACK.md`](FEEDBACK.md), or open a [book feedback](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=book-feedback.yml) or [correction](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=correction.yml) issue.
+
 ## What's here
 
 - `stages/`: the source of truth, as plain directories.

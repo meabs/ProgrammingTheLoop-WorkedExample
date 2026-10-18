@@ -1,0 +1,37 @@
+name: Correction or error
+description: Point out a factual mistake, typo, or misleading claim
+title: "[Correction]: "
+labels: ["correction"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Location (chapter or page)
+      description: Where the error is — chapter, section, or page is enough.
+      placeholder: Chapter 2 / page 18
+    validations:
+      required: true
+  - type: textarea
+    id: what-it-says
+    attributes:
+      label: What it says
+      description: Quote or paraphrase the incorrect bit.
+      placeholder: The book currently says…
+    validations:
+      required: true
+  - type: textarea
+    id: what-it-should-say
+    attributes:
+      label: What it should say
+      description: The corrected wording or the right fact, as best you know it.
+      placeholder: It should say…
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Source or evidence
+      description: A link, citation, or brief note on how you know. Optional but very welcome.
+      placeholder: Docs link, paper, experiment log, etc.
+    validations:
+      required: false
