@@ -6,7 +6,7 @@ It is a **hand-written, reproducible engineering demonstration** of the failure 
 
 ## Feedback
 
-Reader notes welcome — see [`FEEDBACK.md`](FEEDBACK.md), or open a [book feedback](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=book-feedback.yml) or [correction](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=correction.yml) issue.
+Reader notes welcome. See [`FEEDBACK.md`](FEEDBACK.md), or open a [book feedback](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=book-feedback.yml) or [correction](https://github.com/meabs/ProgrammingTheLoop-WorkedExample/issues/new?template=correction.yml) issue.
 
 ## What's here
 
